@@ -1,4 +1,5 @@
 # install neccessary packages
-list.of.packages <- c("cmmr", "optparse")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+Sys.setenv(TAR = "/bin/tar")
+options(repos = "https://cloud.r-project.org/")
+install.packages("cmmr")
+install.packages("optparse")
