@@ -62,7 +62,7 @@ COPY accessibility.properties /app
 
 # install R packages
 COPY r_package_install.R /app
-RUN Rscript r_package_install.R
+RUN Rscript /app/r_package_install.R
 
 # Install mummichog
 RUN pip install --upgrade 'setuptools==44.0.0'
