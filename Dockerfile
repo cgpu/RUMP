@@ -35,7 +35,6 @@ RUN apt-get update -qq && \
     python3-pip\
     python-tk\
     python3-tk\
-
     libnetcdf-dev libpng-dev libbz2-dev liblzma-dev libpcre3-dev libicu-dev
 
 # Install python3-based necessary dependencies for UMPIRE
@@ -67,3 +66,14 @@ RUN Rscript /app/r_package_install.R
 # Install mummichog
 RUN pip install --upgrade 'setuptools==44.0.0'
 RUN pip install 'mummichog==2.2.0'
+
+# Adds scripts inside the container
+RUN mkdir /opt/rump
+COPY ./rump/ /opt/rump
+
+# Make files within rump executable
+RUN find /opt/rump/ -type f -iname "*.py" -exec chmod +x {} \; && \
+    find /opt/rump/ -type f -iname "*.R"   -exec chmod +x {} \;
+
+# Add rump folder with scripts to PATH
+ENV PATH /opt/rump:$PATH
