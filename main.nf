@@ -133,7 +133,7 @@ process input_check {
 // Process for generating MultiQC report regarding data information
 process mqc_data_info {
 
-    publishDir 'results/mqc/', mode: 'copy' //copy the output files to the folder "results/mqc"
+    publishDir "${params.outdir}/MultiQC/", mode: 'copy' //copy the output files to the folder "${params.outdir}/mqc"
 
     input:
     file pos_data_dir from POS_DATA_DIR_INFO // Location of positive data
@@ -216,7 +216,7 @@ process neg_peakDetection_mzmine {
 
 process add_stats {
 
-    publishDir 'results/peak_table/', mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
     echo true
 
     input:
@@ -244,7 +244,7 @@ NEG_DATA_NOBG.into{NEG_NOBG_FOR_BS; NEG_NOBG_FOR_MQC; NEG_NOBG_FOR_PCA; NEG_NOBG
 // Background subtraction
 process blank_subtraction {
 
-    publishDir 'results/peak_table/', mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
     echo true
 
     input:
@@ -264,7 +264,6 @@ process blank_subtraction {
     """   
     blank_subtraction.py -i ${data_pos} -d ${pos_design} -o ${params.pos_data_withbg} &&
     blank_subtraction.py -i ${data_neg} -d ${neg_design} -o ${params.neg_data_withbg} 
-
     """
 }
 
@@ -276,7 +275,7 @@ NEG_DATA_WITHBG.into{NEG_WITHBG_FOR_MQC; NEG_WITHBG_FOR_PCA; NEG_WITHBG_FOR_HCLU
 // Process for generating files that can be parsed by MultiQC regarding peak numbers of different steps.
 process mqc_peak_number_comparison {
 
-    publishDir 'results/mqc/', mode: 'copy'
+    publishDir "${params.outdir}/mqc/", mode: 'copy'
     echo true
 
     input:
@@ -300,7 +299,7 @@ process mqc_peak_number_comparison {
 // process for PCA of "no background subtraction" results
 process pca_nobg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_NOBG_FOR_PCA
@@ -322,7 +321,7 @@ process pca_nobg {
 // process for PCA of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
 process pca_withbg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_WITHBG_FOR_PCA
@@ -347,7 +346,7 @@ process pca_withbg {
 // process for hierarchical clustering of "no background subtraction" results
 process h_clustering_nobg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_NOBG_FOR_HCLUSTERING
@@ -369,7 +368,7 @@ process h_clustering_nobg {
 // process for hierarchical clustering of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
 process h_clustering_withbg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_WITHBG_FOR_HCLUSTERING
@@ -394,7 +393,7 @@ process h_clustering_withbg {
 // process for venn diagram of "no background subtraction" results
 process venn_diagram_nobg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_NOBG_FOR_VD
@@ -424,7 +423,7 @@ process venn_diagram_nobg {
 // process for venn diagram of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
 process venn_diagram_withbg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_WITHBG_FOR_VD
@@ -457,7 +456,7 @@ process venn_diagram_withbg {
 // process for bar plot of "no background subtraction" results
 process bar_plot_nobg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_NOBG_FOR_BARPLOT
@@ -479,7 +478,7 @@ process bar_plot_nobg {
 // process for bar plot of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
 process bar_plot_withbg {
     
-    publishDir 'results/figs', mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
     input:
     file data_pos from POS_WITHBG_FOR_BARPLOT
@@ -504,7 +503,7 @@ process bar_plot_withbg {
 // unknown search for metabolites identified before blank subtraction
 process unknown_search_nobg {
     
-    publishDir 'results/peak_table/', mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
 
     input:
     file data_pos from POS_NOBG_FOR_UNKNOWN_SEARCH
@@ -527,7 +526,7 @@ process unknown_search_nobg {
 // unknown search for metabolites identified after blank subtraction
 process unknown_search_withbg {
     
-    publishDir 'results/peak_table/', mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
 
     input:
     file data_pos from POS_WITHBG_FOR_UNKNOWN_SEARCH
@@ -549,7 +548,7 @@ process unknown_search_withbg {
 
 process mqc_figs {
 
-    publishDir 'results/MultiQC/assets', mode: 'copy'
+    publishDir "${params.outdir}/MultiQC/assets", mode: 'copy'
 
     input:
     file pca_pos_nobg from PCA_POS_NOBG
@@ -596,7 +595,7 @@ process mqc_figs {
 // Process for running MultiQC and generating the report.
 process report_generator {
 
-    publishDir 'results/MultiQC/', mode: 'copy'
+    publishDir "${params.outdir}/MultiQC/", mode: 'copy'
 
     input:
 //    file mqc_dir from MQC_DIR
@@ -631,7 +630,7 @@ MAT_CONFIG_FILE.into{MAT_CONFIG_FILE_NOBG; MAT_CONFIG_FILE_WITHBG}
 
 process mummichog_report_nobg {
 
-    publishDir 'results/mummichog/before_blank_subtraction', mode: 'copy'
+    publishDir "${params.outdir}/mummichog/before_blank_subtraction", mode: 'copy'
 
     input:
     file pos_vd_group1_nobg from POS_VD_GROUP1_NOBG
@@ -661,7 +660,7 @@ process mummichog_report_nobg {
 
 process mummichog_report_withbg {
 
-    publishDir 'results/mummichog/after_blank_subtraction', mode: 'copy'
+    publishDir "${params.outdir}/mummichog/after_blank_subtractionode: 'copy'
 
     input:
     file pos_vd_group1_withbg from POS_VD_GROUP1_WITHBG
