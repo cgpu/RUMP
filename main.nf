@@ -660,7 +660,7 @@ process mummichog_report_nobg {
 
 process mummichog_report_withbg {
 
-    publishDir "${params.outdir}/mummichog/after_blank_subtractionode: 'copy'
+    publishDir "${params.outdir}/mummichog/after_blank_subtractionode", mode:'copy'
 
     input:
     file pos_vd_group1_withbg from POS_VD_GROUP1_WITHBG
