@@ -30,6 +30,9 @@
 version='0.0.0'
 timestamp='20200226'
 
+MZMINE = Channel.fromPath(params.mzmine_dir, type: 'dir') // The location of folder of MzMine
+MZMINE.into{POS_MZMINE; NEG_MZMINE} // Duplicate the MZMINE chennel into two channels, one of which deals with positive sample while the other deals with negative sample.
+
 POS_DATA_DIR = Channel.fromPath(params.input_dir_pos, type: 'dir') // Location of folder storing positive data
 POS_DATA_DIR.into{POS_DATA_DIR_UNIT_TESTS; POS_DATA_DIR_INFO; POS_DATA_DIR_BS}
 NEG_DATA_DIR = Channel.fromPath(params.input_dir_neg, type: 'dir') // Location of folder storing negative data
@@ -175,14 +178,16 @@ process batchfile_generation_mzmine {
 
 process pos_peakDetection_mzmine {
 
+    publishDir "${params.outdir}/peakDetection_mzmine/pos/", mode: 'copy'
     echo true
 
     input:
     file p_b from POS_BATCHFILE // Batchfile for MzMine to process positive data.
     file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
+    file p_m from POS_MZMINE // Folder of MzMine tool
 
     output:
-    file "${params.mzmine_dir}/${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
+    file "${p_m}/${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
 
 // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
@@ -190,27 +195,30 @@ process pos_peakDetection_mzmine {
     """
     sleep 5 &&
     echo "peak detection and library matching for positive data" &&
-    mv ${p_b} ${params.mzmine_dir} && mv ${pos_library} ${params.mzmine_dir} && cd ${params.mzmine_dir} && ./startMZmine-Linux ${p_b}
+    mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && ./startMZmine-Linux ${p_b}
     """
 }
 
 process neg_peakDetection_mzmine {
 
+    publishDir "${params.outdir}/peakDetection_mzmine/neg/", mode: 'copy'
+
     input:
     file n_b from NEG_BATCHFILE // Batchfile for MzMine to process negative data.
     file neg_library from NEG_LIBRARY_MZMINE // Location of library file for negative samples (currently still use the positive library)
+    file n_m from NEG_MZMINE // Folder of MzMine tool
 
     output:
-    file "${params.mzmine_dir}/${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
+    file "${n_m} /${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
     stdout result
 
-// Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
+    // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
     script:
     """ 
     sleep 5 &&  
     echo "peak detection and library matching for negative data" &&
-    mv ${n_b} ${params.mzmine_dir} && mv ${neg_library} ${params.mzmine_dir} && cd ${params.mzmine_dir} && ./startMZmine-Linux ${n_b}
+    mv ${n_b} ${n_m}  && mv ${neg_library} ${n_m}  && cd ${n_m}  && ./startMZmine-Linux ${n_b}
     """
 }
 
