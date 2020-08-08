@@ -209,7 +209,7 @@ process neg_peakDetection_mzmine {
     file n_m from NEG_MZMINE // Folder of MzMine tool
 
     output:
-    file "${n_m} /${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
+    file "${n_m}/${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
     stdout result
 
     // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
