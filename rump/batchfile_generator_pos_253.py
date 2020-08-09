@@ -34,7 +34,7 @@ def batchfile_generator(xml_file, input_dir, library, output_csv):
         MZmine batchfile for positive data.
     """
 
-    input_files = [os.path.abspath(os.path.join(input_dir, f)) for f in os.listdir(input_dir)]
+    input_files = [ os.path.join(input_dir, f) for f in os.listdir(input_dir)]
     input_str = ""
     for i in input_files:
         input_str += "            <file>" + i + "</file>\n"

@@ -34,9 +34,9 @@ MZMINE = Channel.fromPath(params.mzmine_dir, type: 'dir') // The location of fol
 MZMINE.into{POS_MZMINE; NEG_MZMINE} // Duplicate the MZMINE chennel into two channels, one of which deals with positive sample while the other deals with negative sample.
 
 POS_DATA_DIR = Channel.fromPath(params.input_dir_pos, type: 'dir') // Location of folder storing positive data
-POS_DATA_DIR.into{POS_DATA_DIR_UNIT_TESTS; POS_DATA_DIR_INFO; POS_DATA_DIR_BS}
+POS_DATA_DIR.into{POS_DATA_DIR_PEAK_DETECT; POS_DATA_DIR_UNIT_TESTS; POS_DATA_DIR_INFO; POS_DATA_DIR_BS}
 NEG_DATA_DIR = Channel.fromPath(params.input_dir_neg, type: 'dir') // Location of folder storing negative data
-NEG_DATA_DIR.into{NEG_DATA_DIR_UNIT_TESTS; NEG_DATA_DIR_INFO; NEG_DATA_DIR_BS}
+NEG_DATA_DIR.into{NEG_DATA_DIR_PEAK_DETECT; NEG_DATA_DIR_UNIT_TESTS; NEG_DATA_DIR_INFO; NEG_DATA_DIR_BS}
 
 // Design files for positive data and negative data.
 POS_DESIGN = Channel.fromPath(params.POS_design_path)
@@ -182,6 +182,7 @@ process pos_peakDetection_mzmine {
     echo true
 
     input:
+    file pos_data_dir from POS_DATA_DIR_PEAK_DETECT // Location of positive data
     file p_b from POS_BATCHFILE // Batchfile for MzMine to process positive data.
     file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
 
@@ -208,6 +209,7 @@ process pos_peakDetection_mzmine {
 //     publishDir "${params.outdir}/peakDetection_mzmine/neg/", mode: 'copy'
 
 //     input:
+//     file neg_data_dir from NEG_DATA_DIR_PEAK_DETECT // Location of negative data
 //     file n_b from NEG_BATCHFILE // Batchfile for MzMine to process negative data.
 //     file neg_library from NEG_LIBRARY_MZMINE // Location of library file for negative samples (currently still use the positive library)
 //     file n_m from NEG_MZMINE // Folder of MzMine tool
