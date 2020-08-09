@@ -192,12 +192,12 @@ process pos_peakDetection_mzmine {
 // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
     script:
-    // sleep 5 &&
-    // echo "peak detection and library matching for positive data" &&
-    // mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && ./startMZmine-Linux ${p_b}
+
     """
     ls -l
     ls -l ${p_m}
+    echo "peak detection and library matching for positive data" &&
+    mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && chmod +x startMZmine-Linux && startMZmine-Linux  ${p_b}
     """
 }
 
