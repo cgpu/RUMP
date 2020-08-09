@@ -184,20 +184,21 @@ process pos_peakDetection_mzmine {
     input:
     file p_b from POS_BATCHFILE // Batchfile for MzMine to process positive data.
     file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
-    file p_m from POS_MZMINE // Folder of MzMine tool
 
     output:
-    file "${p_m}/${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
+    file "${params.pos_mzmine_peak_output}" into optional true POS_MZMINE_RESULT // MzMine processing result for positive data.
 
 // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
     script:
-
     """
-    ls -l
-    ls -l ${p_m}
+    wget https://github.com/mzmine/mzmine2/releases/download/v2.53/MZmine-2.53-Linux.zip && \
+    unzip MZmine-2.53-Linux.zip && \
+    rm MZmine-2.53-Linux.zip && \
+    mv MZmine-2.53-Linux/* .
+
     echo "peak detection and library matching for positive data" &&
-    mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && chmod +x startMZmine-Linux && bash startMZmine-Linux  ${p_b}
+    ./startMZmine-Linux  ${p_b}
     """
 }
 
