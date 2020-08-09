@@ -197,7 +197,7 @@ process pos_peakDetection_mzmine {
     ls -l
     ls -l ${p_m}
     echo "peak detection and library matching for positive data" &&
-    mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && chmod +x startMZmine-Linux && startMZmine-Linux  ${p_b}
+    mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && chmod +x startMZmine-Linux && bash startMZmine-Linux  ${p_b}
     """
 }
 
