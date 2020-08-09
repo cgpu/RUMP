@@ -4,6 +4,8 @@ FROM rocker/rstudio:3.6.3
 
 LABEL maintainer="xinsongdu@ufl.edu"
 
+USER root
+
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     vim \
@@ -75,11 +77,11 @@ COPY ./rump/ /opt/rump
 RUN find /opt/rump/ -type f -iname "*.py" -exec chmod +x {} \; && \
     find /opt/rump/ -type f -iname "*.R"   -exec chmod +x {} \;
 
-# Add MZmine in container
-RUN wget https://github.com/mzmine/mzmine2/releases/download/v2.53/MZmine-2.53-Linux.zip && \
-    unzip MZmine-2.53-Linux.zip -d / && \
-    rm MZmine-2.53-Linux.zip && \
-    mv /MZmine-2.53-Linux /MZmine
+# # Add MZmine in container
+# RUN wget https://github.com/mzmine/mzmine2/releases/download/v2.53/MZmine-2.53-Linux.zip && \
+#     unzip MZmine-2.53-Linux.zip -d / && \
+#     rm MZmine-2.53-Linux.zip && \
+#     mv /MZmine-2.53-Linux /MZmine
 
 # Add rump folder with scripts to PATH
 ENV PATH /opt/rump:$PATH
