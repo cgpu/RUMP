@@ -176,30 +176,30 @@ process batchfile_generation_mzmine {
     """
 }
 
-POS_MZMINE.view()
+process pos_peakDetection_mzmine {
 
-// process pos_peakDetection_mzmine {
+    publishDir "${params.outdir}/peakDetection_mzmine/pos/", mode: 'copy'
+    echo true
 
-//     publishDir "${params.outdir}/peakDetection_mzmine/pos/", mode: 'copy'
-//     echo true
+    input:
+    file p_b from POS_BATCHFILE // Batchfile for MzMine to process positive data.
+    file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
+    file p_m from POS_MZMINE // Folder of MzMine tool
 
-//     input:
-//     file p_b from POS_BATCHFILE // Batchfile for MzMine to process positive data.
-//     file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
-//     file p_m from POS_MZMINE // Folder of MzMine tool
+    output:
+    file "${p_m}/${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
 
-//     output:
-//     file "${p_m}/${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
+// Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
-// // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
-
-//     script:
-//     """
-//     sleep 5 &&
-//     echo "peak detection and library matching for positive data" &&
-//     mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && ./startMZmine-Linux ${p_b}
-//     """
-// }
+    script:
+    // sleep 5 &&
+    // echo "peak detection and library matching for positive data" &&
+    // mv ${p_b} ${p_m} && mv ${pos_library} ${p_m} && cd ${p_m} && ./startMZmine-Linux ${p_b}
+    """
+    ls -l
+    ls -l ${p_m}
+    """
+}
 
 // process neg_peakDetection_mzmine {
 
