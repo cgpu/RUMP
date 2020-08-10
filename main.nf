@@ -189,7 +189,7 @@ process pos_peakDetection_mzmine {
     file pos_library from POS_LIBRARY_MZMINE // Location of library file for positive samples
 
     output:
-    file "${params.pos_mzmine_peak_output}" optional true // MzMine processing result for positive data.
+    file "${params.pos_mzmine_peak_output}" into POS_MZMINE_RESULT // MzMine processing result for positive data.
 
 // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
@@ -216,7 +216,7 @@ process neg_peakDetection_mzmine {
     file neg_library from NEG_LIBRARY_MZMINE // Location of library file for negative samples
 
     output:
-    file "${params.neg_mzmine_peak_output}" optional true // MzMine processing result for negative data.
+    file "${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
     stdout result
 
     // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
