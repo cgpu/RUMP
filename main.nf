@@ -47,8 +47,8 @@ NEG_DESIGN.into{NEG_DESIGN_FOR_UNIT_TESTS; NEG_DESIGN_FOR_AS; NEG_DESIGN_FOR_BS;
 // Library
 POS_LIBRARY = Channel.fromPath(params.pos_library)
 NEG_LIBRARY = Channel.fromPath(params.neg_library)
-POS_LIBRARY.into{POS_LIBRARY_MZMINE; POS_LIBRARY_STAT}
-NEG_LIBRARY.into{NEG_LIBRARY_MZMINE; NEG_LIBRARY_STAT}
+POS_LIBRARY.into{POS_LIBRARY_BS; POS_LIBRARY_MZMINE; POS_LIBRARY_STAT}
+NEG_LIBRARY.into{NEG_LIBRARY_BS; NEG_LIBRARY_MZMINE; NEG_LIBRARY_STAT}
 
 // Pre-build MultiQC report information
 EXPERIMENTS_INFO = Channel.fromPath(params.experiments_info)
@@ -161,7 +161,9 @@ process batchfile_generation_mzmine {
 
     input:
     file pos_data_dir from POS_DATA_DIR_BS // Location of positive data
+    file pos_library from POS_LIBRARY_BS   // Location of library file for positive samples
     file neg_data_dir from NEG_DATA_DIR_BS // Location of negative data
+    file neg_library from NEG_LIBRARY_BS   // Location of library file for positive samples
 
     output:
     file params.pos_config into POS_BATCHFILE // Generated batchfile for processing positive data
@@ -171,8 +173,8 @@ process batchfile_generation_mzmine {
     """ 
     sleep 15 && 
     echo "setting parameters for MZmine" &&
-    batchfile_generator_pos_253.py -x ${params.pos_config} -i ${pos_data_dir} -l $params.pos_library -o $params.pos_mzmine_peak_output &&
-    batchfile_generator_neg_253.py -x ${params.neg_config} -i ${neg_data_dir} -l $params.neg_library -o $params.neg_mzmine_peak_output
+    batchfile_generator_pos_253.py -x ${params.pos_config} -i ${pos_data_dir} -l ${pos_library} -o $params.pos_mzmine_peak_output &&
+    batchfile_generator_neg_253.py -x ${params.neg_config} -i ${neg_data_dir} -l ${neg_library} -o $params.neg_mzmine_peak_output
     """
 }
 
