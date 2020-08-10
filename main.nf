@@ -206,502 +206,506 @@ process pos_peakDetection_mzmine {
     """
 }
 
-// process neg_peakDetection_mzmine {
+process neg_peakDetection_mzmine {
 
-//     publishDir "${params.outdir}/peakDetection_mzmine/neg/", mode: 'copy'
+    publishDir "${params.outdir}/peakDetection_mzmine/neg/", mode: 'copy'
 
-//     input:
-//     file neg_data_dir from NEG_DATA_DIR_PEAK_DETECT // Location of negative data
-//     file n_b from NEG_BATCHFILE // Batchfile for MzMine to process negative data.
-//     file neg_library from NEG_LIBRARY_MZMINE // Location of library file for negative samples (currently still use the positive library)
-//     file n_m from NEG_MZMINE // Folder of MzMine tool
+    input:
+    file neg_data_dir from NEG_DATA_DIR_PEAK_DETECT // Location of negative data
+    file n_b from NEG_BATCHFILE // Batchfile for MzMine to process negative data.
+    file neg_library from NEG_LIBRARY_MZMINE // Location of library file for negative samples
 
-//     output:
-//     file "${n_m}/${params.neg_mzmine_peak_output}" into NEG_MZMINE_RESULT // MzMine processing result for negative data.
-//     stdout result
+    output:
+    file "${params.neg_mzmine_peak_output}" optional true // MzMine processing result for negative data.
+    stdout result
 
-//     // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
+    // Change "startMZmine_Linux.sh" to "startMZmine_MacOSX.command" in the following code if running locally with Mac
 
-//     script:
-//     """ 
-//     sleep 5 &&  
-//     echo "peak detection and library matching for negative data" &&
-//     mv ${n_b} ${n_m}  && mv ${neg_library} ${n_m}  && cd ${n_m}  && ./startMZmine-Linux ${n_b}
-//     """
-// }
+    script:
+    """ 
+    wget https://github.com/mzmine/mzmine2/releases/download/v2.53/MZmine-2.53-Linux.zip && \
+    unzip MZmine-2.53-Linux.zip && \
+    rm MZmine-2.53-Linux.zip && \
+    mv MZmine-2.53-Linux/* .
+    ls -l
+    echo "peak detection and library matching for positive data" &&
+    ./startMZmine-Linux  ${n_b}
+    ls -l
+    """
+}
 
-// process add_stats {
+process add_stats {
 
-//     publishDir "${params.outdir}/peak_table/", mode: 'copy'
-//     echo true
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
+    echo true
 
-//     input:
-//     file data_pos from POS_MZMINE_RESULT
-//     file pos_design from POS_DESIGN_FOR_AS
-//     file data_neg from NEG_MZMINE_RESULT
-//     file neg_design from NEG_DESIGN_FOR_AS
-//     file pos_library from POS_LIBRARY_STAT
-//     file neg_library from NEG_LIBRARY_STAT
+    input:
+    file data_pos from POS_MZMINE_RESULT
+    file pos_design from POS_DESIGN_FOR_AS
+    file data_neg from NEG_MZMINE_RESULT
+    file neg_design from NEG_DESIGN_FOR_AS
+    file pos_library from POS_LIBRARY_STAT
+    file neg_library from NEG_LIBRARY_STAT
 
-//     output:
-//     file params.pos_data_nobg into POS_DATA_NOBG
-//     file params.neg_data_nobg into NEG_DATA_NOBG
+    output:
+    file params.pos_data_nobg into POS_DATA_NOBG
+    file params.neg_data_nobg into NEG_DATA_NOBG
 
-//     script:
-//     """   
-//     add_stats.py -i ${data_pos} -d ${pos_design} -o ${params.pos_data_nobg} -l ${pos_library} &&
-//     add_stats.py -i ${data_neg} -d ${neg_design} -o ${params.neg_data_nobg} -l ${neg_library}
-//     """
-// }
+    script:
+    """   
+    add_stats.py -i ${data_pos} -d ${pos_design} -o ${params.pos_data_nobg} -l ${pos_library} &&
+    add_stats.py -i ${data_neg} -d ${neg_design} -o ${params.neg_data_nobg} -l ${neg_library}
+    """
+}
 
-// POS_DATA_NOBG.into{POS_NOBG_FOR_BS; POS_NOBG_FOR_MQC; POS_NOBG_FOR_PCA; POS_NOBG_FOR_HCLUSTERING; POS_NOBG_FOR_VD; POS_NOBG_FOR_BARPLOT; POS_NOBG_FOR_MUMMICHOG; POS_NOBG_FOR_UNKNOWN_SEARCH}
-// NEG_DATA_NOBG.into{NEG_NOBG_FOR_BS; NEG_NOBG_FOR_MQC; NEG_NOBG_FOR_PCA; NEG_NOBG_FOR_HCLUSTERING; NEG_NOBG_FOR_VD; NEG_NOBG_FOR_BARPLOT; NEG_NOBG_FOR_MUMMICHOG; NEG_NOBG_FOR_UNKNOWN_SEARCH}
+POS_DATA_NOBG.into{POS_NOBG_FOR_BS; POS_NOBG_FOR_MQC; POS_NOBG_FOR_PCA; POS_NOBG_FOR_HCLUSTERING; POS_NOBG_FOR_VD; POS_NOBG_FOR_BARPLOT; POS_NOBG_FOR_MUMMICHOG; POS_NOBG_FOR_UNKNOWN_SEARCH}
+NEG_DATA_NOBG.into{NEG_NOBG_FOR_BS; NEG_NOBG_FOR_MQC; NEG_NOBG_FOR_PCA; NEG_NOBG_FOR_HCLUSTERING; NEG_NOBG_FOR_VD; NEG_NOBG_FOR_BARPLOT; NEG_NOBG_FOR_MUMMICHOG; NEG_NOBG_FOR_UNKNOWN_SEARCH}
 
-// // Background subtraction
-// process blank_subtraction {
+// Background subtraction
+process blank_subtraction {
 
-//     publishDir "${params.outdir}/peak_table/", mode: 'copy'
-//     echo true
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
+    echo true
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_BS
-//     file pos_design from POS_DESIGN_FOR_BS
-//     file data_neg from NEG_NOBG_FOR_BS
-//     file neg_design from NEG_DESIGN_FOR_BS
+    input:
+    file data_pos from POS_NOBG_FOR_BS
+    file pos_design from POS_DESIGN_FOR_BS
+    file data_neg from NEG_NOBG_FOR_BS
+    file neg_design from NEG_DESIGN_FOR_BS
 
-//     output:
-//     file params.pos_data_withbg into POS_DATA_WITHBG
-//     file params.neg_data_withbg into NEG_DATA_WITHBG
+    output:
+    file params.pos_data_withbg into POS_DATA_WITHBG
+    file params.neg_data_withbg into NEG_DATA_WITHBG
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """   
-//     blank_subtraction.py -i ${data_pos} -d ${pos_design} -o ${params.pos_data_withbg} &&
-//     blank_subtraction.py -i ${data_neg} -d ${neg_design} -o ${params.neg_data_withbg} 
-//     """
-// }
+    script:
+    """   
+    blank_subtraction.py -i ${data_pos} -d ${pos_design} -o ${params.pos_data_withbg} &&
+    blank_subtraction.py -i ${data_neg} -d ${neg_design} -o ${params.neg_data_withbg} 
+    """
+}
 
 
-// // split channel content for multiple-time use
-// POS_DATA_WITHBG.into{POS_WITHBG_FOR_MQC; POS_WITHBG_FOR_PCA; POS_WITHBG_FOR_HCLUSTERING; POS_WITHBG_FOR_VD; POS_WITHBG_FOR_BARPLOT; POS_WITHBG_FOR_MUMMICHOG; POS_WITHBG_FOR_UNKNOWN_SEARCH}
-// NEG_DATA_WITHBG.into{NEG_WITHBG_FOR_MQC; NEG_WITHBG_FOR_PCA; NEG_WITHBG_FOR_HCLUSTERING; NEG_WITHBG_FOR_VD; NEG_WITHBG_FOR_BARPLOT; NEG_WITHBG_FOR_MUMMICHOG; NEG_WITHBG_FOR_UNKNOWN_SEARCH}
+// split channel content for multiple-time use
+POS_DATA_WITHBG.into{POS_WITHBG_FOR_MQC; POS_WITHBG_FOR_PCA; POS_WITHBG_FOR_HCLUSTERING; POS_WITHBG_FOR_VD; POS_WITHBG_FOR_BARPLOT; POS_WITHBG_FOR_MUMMICHOG; POS_WITHBG_FOR_UNKNOWN_SEARCH}
+NEG_DATA_WITHBG.into{NEG_WITHBG_FOR_MQC; NEG_WITHBG_FOR_PCA; NEG_WITHBG_FOR_HCLUSTERING; NEG_WITHBG_FOR_VD; NEG_WITHBG_FOR_BARPLOT; NEG_WITHBG_FOR_MUMMICHOG; NEG_WITHBG_FOR_UNKNOWN_SEARCH}
 
-// // Process for generating files that can be parsed by MultiQC regarding peak numbers of different steps.
-// process mqc_peak_number_comparison {
+// Process for generating files that can be parsed by MultiQC regarding peak numbers of different steps.
+process mqc_peak_number_comparison {
 
-//     publishDir "${params.outdir}/mqc/", mode: 'copy'
-//     echo true
+    publishDir "${params.outdir}/mqc/", mode: 'copy'
+    echo true
 
-//     input:
-//     file pos_nobg from POS_NOBG_FOR_MQC
-//     file neg_nobg from NEG_NOBG_FOR_MQC
-//     file pos_withbg from POS_WITHBG_FOR_MQC
-//     file neg_withbg from NEG_WITHBG_FOR_MQC
+    input:
+    file pos_nobg from POS_NOBG_FOR_MQC
+    file neg_nobg from NEG_NOBG_FOR_MQC
+    file pos_withbg from POS_WITHBG_FOR_MQC
+    file neg_withbg from NEG_WITHBG_FOR_MQC
 
-//     output:
-//     file params.peak_number_comparison_mqc into PEAK_NUMBER_COMPARISON_MQC
+    output:
+    file params.peak_number_comparison_mqc into PEAK_NUMBER_COMPARISON_MQC
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """
-//     peak_number_comparison.py -i1 ${pos_nobg} -i2 ${neg_nobg} -i3 ${pos_withbg} -i4 ${neg_withbg} -o ${params.peak_number_comparison_mqc}
-//     """
-// }
+    script:
+    """
+    peak_number_comparison.py -i1 ${pos_nobg} -i2 ${neg_nobg} -i3 ${pos_withbg} -i4 ${neg_withbg} -o ${params.peak_number_comparison_mqc}
+    """
+}
 
-// // process for PCA of "no background subtraction" results
-// process pca_nobg {
+// process for PCA of "no background subtraction" results
+process pca_nobg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_PCA
-//     file pos_design from POS_DESIGN_FOR_PCA_NOBG
-//     file data_neg from NEG_NOBG_FOR_PCA
-//     file neg_design from NEG_DESIGN_FOR_PCA_NOBG
+    input:
+    file data_pos from POS_NOBG_FOR_PCA
+    file pos_design from POS_DESIGN_FOR_PCA_NOBG
+    file data_neg from NEG_NOBG_FOR_PCA
+    file neg_design from NEG_DESIGN_FOR_PCA_NOBG
 
-//     output:
-//     file params.pca_pos_nobg into PCA_POS_NOBG
-//     file params.pca_neg_nobg into PCA_NEG_NOBG
+    output:
+    file params.pca_pos_nobg into PCA_POS_NOBG
+    file params.pca_neg_nobg into PCA_NEG_NOBG
 
-//     script:
-//     """   
-//     pca.py -i ${data_pos} -d ${pos_design} -o ${params.pca_pos_nobg} &&
-//     pca.py -i ${data_neg} -d ${neg_design} -o ${params.pca_neg_nobg} 
-//     """
-// }
+    script:
+    """   
+    pca.py -i ${data_pos} -d ${pos_design} -o ${params.pca_pos_nobg} &&
+    pca.py -i ${data_neg} -d ${neg_design} -o ${params.pca_neg_nobg} 
+    """
+}
 
-// // process for PCA of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
-// process pca_withbg {
+// process for PCA of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
+process pca_withbg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_WITHBG_FOR_PCA
-//     file pos_design from POS_DESIGN_FOR_PCA_WITHBG
-//     file data_neg from NEG_WITHBG_FOR_PCA
-//     file neg_design from NEG_DESIGN_FOR_PCA_WITHBG
+    input:
+    file data_pos from POS_WITHBG_FOR_PCA
+    file pos_design from POS_DESIGN_FOR_PCA_WITHBG
+    file data_neg from NEG_WITHBG_FOR_PCA
+    file neg_design from NEG_DESIGN_FOR_PCA_WITHBG
 
-//     output:
-//     file params.pca_pos_withbg into PCA_POS_WITHBG
-//     file params.pca_neg_withbg into PCA_NEG_WITHBG
+    output:
+    file params.pca_pos_withbg into PCA_POS_WITHBG
+    file params.pca_neg_withbg into PCA_NEG_WITHBG
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """   
-//     pca.py -i ${data_pos} -d ${pos_design} -o ${params.pca_pos_withbg} &&
-//     pca.py -i ${data_neg} -d ${neg_design} -o ${params.pca_neg_withbg}
-//     """
-// }
+    script:
+    """   
+    pca.py -i ${data_pos} -d ${pos_design} -o ${params.pca_pos_withbg} &&
+    pca.py -i ${data_neg} -d ${neg_design} -o ${params.pca_neg_withbg}
+    """
+}
 
-// // process for hierarchical clustering of "no background subtraction" results
-// process h_clustering_nobg {
+// process for hierarchical clustering of "no background subtraction" results
+process h_clustering_nobg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_HCLUSTERING
-//     file pos_design from POS_DESIGN_FOR_HCLUSTERING_NOBG
-//     file data_neg from NEG_NOBG_FOR_HCLUSTERING
-//     file neg_design from NEG_DESIGN_FOR_HCLUSTERING_NOBG
+    input:
+    file data_pos from POS_NOBG_FOR_HCLUSTERING
+    file pos_design from POS_DESIGN_FOR_HCLUSTERING_NOBG
+    file data_neg from NEG_NOBG_FOR_HCLUSTERING
+    file neg_design from NEG_DESIGN_FOR_HCLUSTERING_NOBG
 
-//     output:
-//     file params.hclustering_pos_nobg into HCLUSTERING_POS_NOBG
-//     file params.hclustering_neg_nobg into HCLUSTERING_NEG_NOBG
+    output:
+    file params.hclustering_pos_nobg into HCLUSTERING_POS_NOBG
+    file params.hclustering_neg_nobg into HCLUSTERING_NEG_NOBG
 
-//     script:
-//     """   
-//     h_clustering.py -i ${data_pos} -d ${pos_design} -o ${params.hclustering_pos_nobg} -m 0 &&
-//     h_clustering.py -i ${data_neg} -d ${neg_design} -o ${params.hclustering_neg_nobg} -m 0
-//     """
-// }
+    script:
+    """   
+    h_clustering.py -i ${data_pos} -d ${pos_design} -o ${params.hclustering_pos_nobg} -m 0 &&
+    h_clustering.py -i ${data_neg} -d ${neg_design} -o ${params.hclustering_neg_nobg} -m 0
+    """
+}
 
-// // process for hierarchical clustering of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
-// process h_clustering_withbg {
+// process for hierarchical clustering of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
+process h_clustering_withbg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_WITHBG_FOR_HCLUSTERING
-//     file pos_design from POS_DESIGN_FOR_HCLUSTERING_WITHBG
-//     file data_neg from NEG_WITHBG_FOR_HCLUSTERING
-//     file neg_design from NEG_DESIGN_FOR_HCLUSTERING_WITHBG
+    input:
+    file data_pos from POS_WITHBG_FOR_HCLUSTERING
+    file pos_design from POS_DESIGN_FOR_HCLUSTERING_WITHBG
+    file data_neg from NEG_WITHBG_FOR_HCLUSTERING
+    file neg_design from NEG_DESIGN_FOR_HCLUSTERING_WITHBG
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     output:
-//     file params.hclustering_pos_withbg into HCLUSTERING_POS_WITHBG
-//     file params.hclustering_neg_withbg into HCLUSTERING_NEG_WITHBG
+    output:
+    file params.hclustering_pos_withbg into HCLUSTERING_POS_WITHBG
+    file params.hclustering_neg_withbg into HCLUSTERING_NEG_WITHBG
 
-//     script:
-//     """   
-//     h_clustering.py -i ${data_pos} -d ${pos_design} -o ${params.hclustering_pos_withbg} -m 0 &&
-//     h_clustering.py -i ${data_neg} -d ${neg_design} -o ${params.hclustering_neg_withbg} -m 0
-//     """
-// }
+    script:
+    """   
+    h_clustering.py -i ${data_pos} -d ${pos_design} -o ${params.hclustering_pos_withbg} -m 0 &&
+    h_clustering.py -i ${data_neg} -d ${neg_design} -o ${params.hclustering_neg_withbg} -m 0
+    """
+}
 
-// // process for venn diagram of "no background subtraction" results
-// process venn_diagram_nobg {
+// process for venn diagram of "no background subtraction" results
+process venn_diagram_nobg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_VD
-//     file pos_design from POS_DESIGN_FOR_VD_NOBG
-//     file data_neg from NEG_NOBG_FOR_VD
-//     file neg_design from NEG_DESIGN_FOR_VD_NOBG
+    input:
+    file data_pos from POS_NOBG_FOR_VD
+    file pos_design from POS_DESIGN_FOR_VD_NOBG
+    file data_neg from NEG_NOBG_FOR_VD
+    file neg_design from NEG_DESIGN_FOR_VD_NOBG
 
-//     output:
-//     file params.vd_pos_nobg into VD_POS_NOBG
-//     file params.vd_neg_nobg into VD_NEG_NOBG
-//     file params.pos_vd_group1_nobg into POS_VD_GROUP1_NOBG
-//     file params.pos_vd_group2_nobg into POS_VD_GROUP2_NOBG
-//     file params.pos_vd_both_nobg into POS_VD_BOTH_NOBG
-//     file params.neg_vd_group1_nobg into NEG_VD_GROUP1_NOBG
-//     file params.neg_vd_group2_nobg into NEG_VD_GROUP2_NOBG
-//     file params.neg_vd_both_nobg into NEG_VD_BOTH_NOBG
-//     file "pos*.txt" into POS_NOBG_CUTOFFS
-//     file "neg*.txt" into NEG_NOBG_CUTOFFS
+    output:
+    file params.vd_pos_nobg into VD_POS_NOBG
+    file params.vd_neg_nobg into VD_NEG_NOBG
+    file params.pos_vd_group1_nobg into POS_VD_GROUP1_NOBG
+    file params.pos_vd_group2_nobg into POS_VD_GROUP2_NOBG
+    file params.pos_vd_both_nobg into POS_VD_BOTH_NOBG
+    file params.neg_vd_group1_nobg into NEG_VD_GROUP1_NOBG
+    file params.neg_vd_group2_nobg into NEG_VD_GROUP2_NOBG
+    file params.neg_vd_both_nobg into NEG_VD_BOTH_NOBG
+    file "pos*.txt" into POS_NOBG_CUTOFFS
+    file "neg*.txt" into NEG_NOBG_CUTOFFS
 
-//     script:
-//     """   
-//     venn.py -i ${data_pos} -d ${pos_design} -o ${params.vd_pos_nobg} -bs 0 -g1 ${params.pos_vd_group1_nobg} -g2 ${params.pos_vd_group2_nobg} -bt ${params.pos_vd_both_nobg} &&
-//     venn.py -i ${data_neg} -d ${neg_design} -o ${params.vd_neg_nobg} -bs 0 -g1 ${params.neg_vd_group1_nobg} -g2 ${params.neg_vd_group2_nobg} -bt ${params.neg_vd_both_nobg}
-//     """
-// }
+    script:
+    """   
+    venn.py -i ${data_pos} -d ${pos_design} -o ${params.vd_pos_nobg} -bs 0 -g1 ${params.pos_vd_group1_nobg} -g2 ${params.pos_vd_group2_nobg} -bt ${params.pos_vd_both_nobg} &&
+    venn.py -i ${data_neg} -d ${neg_design} -o ${params.vd_neg_nobg} -bs 0 -g1 ${params.neg_vd_group1_nobg} -g2 ${params.neg_vd_group2_nobg} -bt ${params.neg_vd_both_nobg}
+    """
+}
 
-// // process for venn diagram of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
-// process venn_diagram_withbg {
+// process for venn diagram of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
+process venn_diagram_withbg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_WITHBG_FOR_VD
-//     file pos_design from POS_DESIGN_FOR_VD_WITHBG
-//     file data_neg from NEG_WITHBG_FOR_VD
-//     file neg_design from NEG_DESIGN_FOR_VD_WITHBG
+    input:
+    file data_pos from POS_WITHBG_FOR_VD
+    file pos_design from POS_DESIGN_FOR_VD_WITHBG
+    file data_neg from NEG_WITHBG_FOR_VD
+    file neg_design from NEG_DESIGN_FOR_VD_WITHBG
 
-//     output:
-//     file params.vd_pos_withbg into VD_POS_WITHBG
-//     file params.vd_neg_withbg into VD_NEG_WITHBG
-//     file params.pos_vd_group1_withbg into POS_VD_GROUP1_WITHBG
-//     file params.pos_vd_group2_withbg into POS_VD_GROUP2_WITHBG
-//     file params.pos_vd_both_withbg into POS_VD_BOTH_WITHBG
-//     file params.neg_vd_group1_withbg into NEG_VD_GROUP1_WITHBG
-//     file params.neg_vd_group2_withbg into NEG_VD_GROUP2_WITHBG
-//     file params.neg_vd_both_withbg into NEG_VD_BOTH_WITHBG
-//     file "pos*.txt" into POS_WITHBG_CUTOFFS
-//     file "neg*.txt" into NEG_WITHBG_CUTOFFS
+    output:
+    file params.vd_pos_withbg into VD_POS_WITHBG
+    file params.vd_neg_withbg into VD_NEG_WITHBG
+    file params.pos_vd_group1_withbg into POS_VD_GROUP1_WITHBG
+    file params.pos_vd_group2_withbg into POS_VD_GROUP2_WITHBG
+    file params.pos_vd_both_withbg into POS_VD_BOTH_WITHBG
+    file params.neg_vd_group1_withbg into NEG_VD_GROUP1_WITHBG
+    file params.neg_vd_group2_withbg into NEG_VD_GROUP2_WITHBG
+    file params.neg_vd_both_withbg into NEG_VD_BOTH_WITHBG
+    file "pos*.txt" into POS_WITHBG_CUTOFFS
+    file "neg*.txt" into NEG_WITHBG_CUTOFFS
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """   
-//     venn.py -i ${data_pos} -d ${pos_design} -o ${params.vd_pos_withbg} -bs 1 -g1 ${params.pos_vd_group1_withbg} -g2 ${params.pos_vd_group2_withbg} -bt ${params.pos_vd_both_withbg} &&
-//     venn.py -i ${data_neg} -d ${neg_design} -o ${params.vd_neg_withbg} -bs 1 -g1 ${params.neg_vd_group1_withbg} -g2 ${params.neg_vd_group2_withbg} -bt ${params.neg_vd_both_withbg}
-//     """
-// }
+    script:
+    """   
+    venn.py -i ${data_pos} -d ${pos_design} -o ${params.vd_pos_withbg} -bs 1 -g1 ${params.pos_vd_group1_withbg} -g2 ${params.pos_vd_group2_withbg} -bt ${params.pos_vd_both_withbg} &&
+    venn.py -i ${data_neg} -d ${neg_design} -o ${params.vd_neg_withbg} -bs 1 -g1 ${params.neg_vd_group1_withbg} -g2 ${params.neg_vd_group2_withbg} -bt ${params.neg_vd_both_withbg}
+    """
+}
 
-// // process for bar plot of "no background subtraction" results
-// process bar_plot_nobg {
+// process for bar plot of "no background subtraction" results
+process bar_plot_nobg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_BARPLOT
-//     file pos_design from POS_DESIGN_FOR_BARPLOT_NOBG
-//     file data_neg from NEG_NOBG_FOR_BARPLOT
-//     file neg_design from NEG_DESIGN_FOR_BARPLOT_NOBG
+    input:
+    file data_pos from POS_NOBG_FOR_BARPLOT
+    file pos_design from POS_DESIGN_FOR_BARPLOT_NOBG
+    file data_neg from NEG_NOBG_FOR_BARPLOT
+    file neg_design from NEG_DESIGN_FOR_BARPLOT_NOBG
 
-//     output:
-//     file params.barplot_pos_nobg into BARPLOT_POS_NOBG
-//     file params.barplot_neg_nobg into BARPLOT_NEG_NOBG
+    output:
+    file params.barplot_pos_nobg into BARPLOT_POS_NOBG
+    file params.barplot_neg_nobg into BARPLOT_NEG_NOBG
 
-//     script:
-//     """   
-//     bar_plot.py -i ${data_pos} -d ${pos_design} -o ${params.barplot_pos_nobg} -m 0 -bs 0 &&
-//     bar_plot.py -i ${data_neg} -d ${neg_design} -o ${params.barplot_neg_nobg} -m 0 -bs 0
-//     """
-// }
+    script:
+    """   
+    bar_plot.py -i ${data_pos} -d ${pos_design} -o ${params.barplot_pos_nobg} -m 0 -bs 0 &&
+    bar_plot.py -i ${data_neg} -d ${neg_design} -o ${params.barplot_neg_nobg} -m 0 -bs 0
+    """
+}
 
-// // process for bar plot of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
-// process bar_plot_withbg {
+// process for bar plot of "with background subtraction" results, here we use 100 as the threshold of background subtraction.
+process bar_plot_withbg {
     
-//     publishDir "${params.outdir}/figs", mode: 'copy'
+    publishDir "${params.outdir}/figs", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_WITHBG_FOR_BARPLOT
-//     file pos_design from POS_DESIGN_FOR_BARPLOT_WITHBG
-//     file data_neg from NEG_WITHBG_FOR_BARPLOT
-//     file neg_design from NEG_DESIGN_FOR_BARPLOT_WITHBG
+    input:
+    file data_pos from POS_WITHBG_FOR_BARPLOT
+    file pos_design from POS_DESIGN_FOR_BARPLOT_WITHBG
+    file data_neg from NEG_WITHBG_FOR_BARPLOT
+    file neg_design from NEG_DESIGN_FOR_BARPLOT_WITHBG
 
-//     output:
-//     file params.barplot_pos_withbg into BARPLOT_POS_WITHBG
-//     file params.barplot_neg_withbg into BARPLOT_NEG_WITHBG
+    output:
+    file params.barplot_pos_withbg into BARPLOT_POS_WITHBG
+    file params.barplot_neg_withbg into BARPLOT_NEG_WITHBG
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """   
-//     bar_plot.py -i ${data_pos} -d ${pos_design} -o ${params.barplot_pos_withbg} -m 0 -bs 1 &&
-//     bar_plot.py -i ${data_neg} -d ${neg_design} -o ${params.barplot_neg_withbg} -m 0 -bs 1
-//     """
-// }
+    script:
+    """   
+    bar_plot.py -i ${data_pos} -d ${pos_design} -o ${params.barplot_pos_withbg} -m 0 -bs 1 &&
+    bar_plot.py -i ${data_neg} -d ${neg_design} -o ${params.barplot_neg_withbg} -m 0 -bs 1
+    """
+}
 
-// // unknown search for metabolites identified before blank subtraction
-// process unknown_search_nobg {
+// unknown search for metabolites identified before blank subtraction
+process unknown_search_nobg {
     
-//     publishDir "${params.outdir}/peak_table/", mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_NOBG_FOR_UNKNOWN_SEARCH
-//     file data_neg from NEG_NOBG_FOR_UNKNOWN_SEARCH
+    input:
+    file data_pos from POS_NOBG_FOR_UNKNOWN_SEARCH
+    file data_neg from NEG_NOBG_FOR_UNKNOWN_SEARCH
 
-//     output:
-//     file params.unknown_search_pos_nobg into UNKNOWN_SEARCH_POS_NOBG
-//     file params.unknown_search_neg_nobg into UNKNOWN_SEARCH_NEG_NOBG
+    output:
+    file params.unknown_search_pos_nobg into UNKNOWN_SEARCH_POS_NOBG
+    file params.unknown_search_neg_nobg into UNKNOWN_SEARCH_NEG_NOBG
 
-//     when:
-//     params.unknown_search == "1"
+    when:
+    params.unknown_search == "1"
 
-//     script:
-//     """   
-//     unknown_search.R -i ${data_pos} -n positive -c ${params.mz_col_pos_nobg} -o ${params.unknown_search_pos_nobg} &&
-//     unknown_search.R -i ${data_neg} -n negative -c ${params.mz_col_neg_nobg} -o ${params.unknown_search_neg_nobg}
-//     """
-// }
+    script:
+    """   
+    unknown_search.R -i ${data_pos} -n positive -c ${params.mz_col_pos_nobg} -o ${params.unknown_search_pos_nobg} &&
+    unknown_search.R -i ${data_neg} -n negative -c ${params.mz_col_neg_nobg} -o ${params.unknown_search_neg_nobg}
+    """
+}
 
-// // unknown search for metabolites identified after blank subtraction
-// process unknown_search_withbg {
+// unknown search for metabolites identified after blank subtraction
+process unknown_search_withbg {
     
-//     publishDir "${params.outdir}/peak_table/", mode: 'copy'
+    publishDir "${params.outdir}/peak_table/", mode: 'copy'
 
-//     input:
-//     file data_pos from POS_WITHBG_FOR_UNKNOWN_SEARCH
-//     file data_neg from NEG_WITHBG_FOR_UNKNOWN_SEARCH
+    input:
+    file data_pos from POS_WITHBG_FOR_UNKNOWN_SEARCH
+    file data_neg from NEG_WITHBG_FOR_UNKNOWN_SEARCH
 
-//     output:
-//     file params.unknown_search_pos_withbg into UNKNOWN_SEARCH_POS_WITHBG
-//     file params.unknown_search_neg_withbg into UNKNOWN_SEARCH_NEG_WITHBG
+    output:
+    file params.unknown_search_pos_withbg into UNKNOWN_SEARCH_POS_WITHBG
+    file params.unknown_search_neg_withbg into UNKNOWN_SEARCH_NEG_WITHBG
 
-//     when:
-//     params.bs == "1" && params.unknown_search == "1"
+    when:
+    params.bs == "1" && params.unknown_search == "1"
 
-//     script:
-//     """   
-//     unknown_search.R -i ${data_pos} -n positive -c ${params.mz_col_pos_withbg} -o ${params.unknown_search_pos_withbg} &&
-//     unknown_search.R -i ${data_neg} -n negative -c ${params.mz_col_neg_withbg} -o ${params.unknown_search_neg_withbg}
-//     """
-// }
+    script:
+    """   
+    unknown_search.R -i ${data_pos} -n positive -c ${params.mz_col_pos_withbg} -o ${params.unknown_search_pos_withbg} &&
+    unknown_search.R -i ${data_neg} -n negative -c ${params.mz_col_neg_withbg} -o ${params.unknown_search_neg_withbg}
+    """
+}
 
-// process mqc_figs {
+process mqc_figs {
 
-//     publishDir "${params.outdir}/MultiQC/assets", mode: 'copy'
+    publishDir "${params.outdir}/MultiQC/assets", mode: 'copy'
 
-//     input:
-//     file pca_pos_nobg from PCA_POS_NOBG
-//     file pca_neg_nobg from PCA_NEG_NOBG
-//     file pca_pos_withbg from PCA_POS_WITHBG
-//     file pca_neg_withbg from PCA_NEG_WITHBG
-//     file hclustering_pos_nobg from HCLUSTERING_POS_NOBG
-//     file hclustering_neg_nobg from HCLUSTERING_NEG_NOBG
-//     file hclustering_pos_withbg from HCLUSTERING_POS_WITHBG
-//     file hclustering_neg_withbg from HCLUSTERING_NEG_WITHBG
-//     file vd_pos_nobg from VD_POS_NOBG
-//     file vd_neg_nobg from VD_NEG_NOBG
-//     file vd_pos_withbg from VD_POS_WITHBG
-//     file vd_neg_withbg from VD_NEG_WITHBG
-//     file barplot_pos_nobg from BARPLOT_POS_NOBG
-//     file barplot_neg_nobg from BARPLOT_NEG_NOBG
-//     file barplot_pos_withbg from BARPLOT_POS_WITHBG
-//     file barplot_neg_withbg from BARPLOT_NEG_WITHBG
+    input:
+    file pca_pos_nobg from PCA_POS_NOBG
+    file pca_neg_nobg from PCA_NEG_NOBG
+    file pca_pos_withbg from PCA_POS_WITHBG
+    file pca_neg_withbg from PCA_NEG_WITHBG
+    file hclustering_pos_nobg from HCLUSTERING_POS_NOBG
+    file hclustering_neg_nobg from HCLUSTERING_NEG_NOBG
+    file hclustering_pos_withbg from HCLUSTERING_POS_WITHBG
+    file hclustering_neg_withbg from HCLUSTERING_NEG_WITHBG
+    file vd_pos_nobg from VD_POS_NOBG
+    file vd_neg_nobg from VD_NEG_NOBG
+    file vd_pos_withbg from VD_POS_WITHBG
+    file vd_neg_withbg from VD_NEG_WITHBG
+    file barplot_pos_nobg from BARPLOT_POS_NOBG
+    file barplot_neg_nobg from BARPLOT_NEG_NOBG
+    file barplot_pos_withbg from BARPLOT_POS_WITHBG
+    file barplot_neg_withbg from BARPLOT_NEG_WITHBG
 
-//     output:
-//     file "*positive_with_background_subtraction_mqc.png" into MQC_FIGS
+    output:
+    file "*positive_with_background_subtraction_mqc.png" into MQC_FIGS
 
-//     script:
-//     """
-//     mv $pca_pos_nobg "PCA_for_positive_no_background_subtraction_mqc.png" &&
-//     mv $pca_neg_nobg "PCA_for_negative_no_background_subtraction_mqc.png" &&
-//     mv $pca_pos_withbg "PCA_for_positive_with_background_subtraction_mqc.png" &&
-//     mv $pca_neg_withbg "PCA_for_negative_with_background_subtraction_mqc.png" &&
-//     mv $hclustering_pos_nobg "Hirerchical_clustering_for_positive_no_background_subtraction_mqc.png" &&
-//     mv $hclustering_neg_nobg "Hirerchical_clustering_for_negative_no_background_subtraction_mqc.png" &&
-//     mv $hclustering_pos_withbg "Hirerchical_clustering_for_positive_with_background_subtraction_mqc.png" &&
-//     mv $hclustering_neg_withbg "Hirerchical_clustering_for_negative_with_background_subtraction_mqc.png" &&
-//     mv $vd_pos_nobg "Venn_diagram_for_positive_no_background_subtraction_mqc.png" &&
-//     mv $vd_neg_nobg "Venn_diagram_for_negative_no_background_subtraction_mqc.png" &&
-//     mv $vd_pos_withbg "Venn_diagram_for_positive_with_background_subtraction_mqc.png" &&
-//     mv $vd_neg_withbg "Venn_diagram_for_negative_with_background_subtraction_mqc.png" &&
-//     mv $barplot_pos_nobg "Bar_plot_clustering_for_positive_no_background_subtraction_mqc.png" &&
-//     mv $barplot_neg_nobg "Bar_plot_clustering_for_negative_no_background_subtraction_mqc.png" &&
-//     mv $barplot_pos_withbg "Bar_plot_clustering_for_positive_with_background_subtraction_mqc.png" &&
-//     mv $barplot_neg_withbg "Bar_plot_clustering_for_negative_with_background_subtraction_mqc.png"
-//     """
-// }
+    script:
+    """
+    mv $pca_pos_nobg "PCA_for_positive_no_background_subtraction_mqc.png" &&
+    mv $pca_neg_nobg "PCA_for_negative_no_background_subtraction_mqc.png" &&
+    mv $pca_pos_withbg "PCA_for_positive_with_background_subtraction_mqc.png" &&
+    mv $pca_neg_withbg "PCA_for_negative_with_background_subtraction_mqc.png" &&
+    mv $hclustering_pos_nobg "Hirerchical_clustering_for_positive_no_background_subtraction_mqc.png" &&
+    mv $hclustering_neg_nobg "Hirerchical_clustering_for_negative_no_background_subtraction_mqc.png" &&
+    mv $hclustering_pos_withbg "Hirerchical_clustering_for_positive_with_background_subtraction_mqc.png" &&
+    mv $hclustering_neg_withbg "Hirerchical_clustering_for_negative_with_background_subtraction_mqc.png" &&
+    mv $vd_pos_nobg "Venn_diagram_for_positive_no_background_subtraction_mqc.png" &&
+    mv $vd_neg_nobg "Venn_diagram_for_negative_no_background_subtraction_mqc.png" &&
+    mv $vd_pos_withbg "Venn_diagram_for_positive_with_background_subtraction_mqc.png" &&
+    mv $vd_neg_withbg "Venn_diagram_for_negative_with_background_subtraction_mqc.png" &&
+    mv $barplot_pos_nobg "Bar_plot_clustering_for_positive_no_background_subtraction_mqc.png" &&
+    mv $barplot_neg_nobg "Bar_plot_clustering_for_negative_no_background_subtraction_mqc.png" &&
+    mv $barplot_pos_withbg "Bar_plot_clustering_for_positive_with_background_subtraction_mqc.png" &&
+    mv $barplot_neg_withbg "Bar_plot_clustering_for_negative_with_background_subtraction_mqc.png"
+    """
+}
 
-// // Process for running MultiQC and generating the report.
-// process report_generator {
+// Process for running MultiQC and generating the report.
+process report_generator {
 
-//     publishDir "${params.outdir}/MultiQC/", mode: 'copy'
+    publishDir "${params.outdir}/MultiQC/", mode: 'copy'
 
-//     input:
-// //    file mqc_dir from MQC_DIR
-//     file pos_data_info_mqc from POS_DATA_INFO_MQC
-//     file neg_data_info_mqc from NEG_DATA_INFO_MQC
-//     file experiments_info from EXPERIMENTS_INFO
-//     file mqc_config from MQC_CONFIG
-//     file peak_number_comparison_mqc from PEAK_NUMBER_COMPARISON_MQC
-//     file '*' from MQC_FIGS
+    input:
+//    file mqc_dir from MQC_DIR
+    file pos_data_info_mqc from POS_DATA_INFO_MQC
+    file neg_data_info_mqc from NEG_DATA_INFO_MQC
+    file experiments_info from EXPERIMENTS_INFO
+    file mqc_config from MQC_CONFIG
+    file peak_number_comparison_mqc from PEAK_NUMBER_COMPARISON_MQC
+    file '*' from MQC_FIGS
 
-//     output:
-//     file "multiqc_report.html" into MULTIQC_REPORT
+    output:
+    file "multiqc_report.html" into MULTIQC_REPORT
 
-//     script:
-//     """
-//     multiqc .
-//     """
+    script:
+    """
+    multiqc .
+    """
 
-// }
+}
 
-// if (params.container != "Docker") {
-//     MAT_CONFIG_DIR = Channel.from('~/.config/matplotlib/')
-//     MAT_CONFIG_FILE = Channel.from('~/.config/matplotlib/matplotlibrc')
-// }
-// else {
-//     MAT_CONFIG_DIR = Channel.from('/root/.config/matplotlib/')
-//     MAT_CONFIG_FILE = Channel.from('/root/.config/matplotlib/matplotlibrc')
-// }
+if (params.container != "Docker") {
+    MAT_CONFIG_DIR = Channel.from('~/.config/matplotlib/')
+    MAT_CONFIG_FILE = Channel.from('~/.config/matplotlib/matplotlibrc')
+}
+else {
+    MAT_CONFIG_DIR = Channel.from('/root/.config/matplotlib/')
+    MAT_CONFIG_FILE = Channel.from('/root/.config/matplotlib/matplotlibrc')
+}
 
-// MAT_CONFIG_DIR.into{MAT_CONFIG_DIR_NOBG; MAT_CONFIG_DIR_WITHBG}
-// MAT_CONFIG_FILE.into{MAT_CONFIG_FILE_NOBG; MAT_CONFIG_FILE_WITHBG}
+MAT_CONFIG_DIR.into{MAT_CONFIG_DIR_NOBG; MAT_CONFIG_DIR_WITHBG}
+MAT_CONFIG_FILE.into{MAT_CONFIG_FILE_NOBG; MAT_CONFIG_FILE_WITHBG}
 
-// process mummichog_report_nobg {
+process mummichog_report_nobg {
 
-//     publishDir "${params.outdir}/mummichog/before_blank_subtraction", mode: 'copy'
+    publishDir "${params.outdir}/mummichog/before_blank_subtraction", mode: 'copy'
 
-//     input:
-//     file pos_vd_group1_nobg from POS_VD_GROUP1_NOBG
-//     file pos_vd_group2_nobg from POS_VD_GROUP2_NOBG
-//     file pos_vd_both_nobg from POS_VD_BOTH_NOBG
-//     val mat_config_dir_nobg from MAT_CONFIG_DIR_NOBG
-//     val mat_config_file_nobg from MAT_CONFIG_FILE_NOBG
-//     file "*" from POS_NOBG_CUTOFFS
+    input:
+    file pos_vd_group1_nobg from POS_VD_GROUP1_NOBG
+    file pos_vd_group2_nobg from POS_VD_GROUP2_NOBG
+    file pos_vd_both_nobg from POS_VD_BOTH_NOBG
+    val mat_config_dir_nobg from MAT_CONFIG_DIR_NOBG
+    val mat_config_file_nobg from MAT_CONFIG_FILE_NOBG
+    file "*" from POS_NOBG_CUTOFFS
 
-//     output:
-//     file "*" into MUMMICHOG_REPORT_NOBG
+    output:
+    file "*" into MUMMICHOG_REPORT_NOBG
 
-//     script:
-//     """
-//     echo "generating mommichog report for peaks before blank subtraction" &&
-//     mkdir -p ${mat_config_dir_nobg} &&
-//     echo "backend: Agg" > ${mat_config_file_nobg} &&
-//     mummichog_input_prepare.py -i ${pos_vd_group1_nobg} -o ${params.data_pos_nobg_group1_mummichog} &&
-//     mummichog -f ${params.data_pos_nobg_group1_mummichog} -o ${params.data_pos_nobg_group1_mummichog_out} -c ${params.cutoff} &&
-//     mummichog_input_prepare.py -i ${pos_vd_group2_nobg} -o ${params.data_pos_nobg_group2_mummichog} &&
-//     mummichog -f ${params.data_pos_nobg_group2_mummichog} -o ${params.data_pos_nobg_group2_mummichog_out} -c ${params.cutoff} &&
-//     mummichog_input_prepare.py -i ${pos_vd_both_nobg} -o ${params.data_pos_nobg_both_mummichog} &&
-//     mummichog -f ${params.data_pos_nobg_both_mummichog} -o ${params.data_pos_nobg_both_mummichog_out} -c ${params.cutoff}
-//     """
+    script:
+    """
+    echo "generating mommichog report for peaks before blank subtraction" &&
+    mkdir -p ${mat_config_dir_nobg} &&
+    echo "backend: Agg" > ${mat_config_file_nobg} &&
+    mummichog_input_prepare.py -i ${pos_vd_group1_nobg} -o ${params.data_pos_nobg_group1_mummichog} &&
+    mummichog -f ${params.data_pos_nobg_group1_mummichog} -o ${params.data_pos_nobg_group1_mummichog_out} -c ${params.cutoff} &&
+    mummichog_input_prepare.py -i ${pos_vd_group2_nobg} -o ${params.data_pos_nobg_group2_mummichog} &&
+    mummichog -f ${params.data_pos_nobg_group2_mummichog} -o ${params.data_pos_nobg_group2_mummichog_out} -c ${params.cutoff} &&
+    mummichog_input_prepare.py -i ${pos_vd_both_nobg} -o ${params.data_pos_nobg_both_mummichog} &&
+    mummichog -f ${params.data_pos_nobg_both_mummichog} -o ${params.data_pos_nobg_both_mummichog_out} -c ${params.cutoff}
+    """
 
-// }
+}
 
-// process mummichog_report_withbg {
+process mummichog_report_withbg {
 
-//     publishDir "${params.outdir}/mummichog/after_blank_subtractionode", mode:'copy'
+    publishDir "${params.outdir}/mummichog/after_blank_subtractionode", mode:'copy'
 
-//     input:
-//     file pos_vd_group1_withbg from POS_VD_GROUP1_WITHBG
-//     file pos_vd_group2_withbg from POS_VD_GROUP2_WITHBG
-//     file pos_vd_both_withbg from POS_VD_BOTH_WITHBG
-//     val mat_config_dir_withbg from MAT_CONFIG_DIR_WITHBG
-//     val mat_config_file_withbg from MAT_CONFIG_FILE_WITHBG
-//     file "*" from POS_WITHBG_CUTOFFS
+    input:
+    file pos_vd_group1_withbg from POS_VD_GROUP1_WITHBG
+    file pos_vd_group2_withbg from POS_VD_GROUP2_WITHBG
+    file pos_vd_both_withbg from POS_VD_BOTH_WITHBG
+    val mat_config_dir_withbg from MAT_CONFIG_DIR_WITHBG
+    val mat_config_file_withbg from MAT_CONFIG_FILE_WITHBG
+    file "*" from POS_WITHBG_CUTOFFS
 
-//     output:
-//     file "*" into MUMMICHOG_REPORT_WITHBG
+    output:
+    file "*" into MUMMICHOG_REPORT_WITHBG
 
-//     when:
-//     params.bs == "1"
+    when:
+    params.bs == "1"
 
-//     script:
-//     """
-//     echo "generating mommichog report for peaks after blank subtraction" &&
-//     mkdir -p ${mat_config_dir_withbg} &&
-//     echo "backend: Agg" > ${mat_config_file_withbg} &&
-//     mummichog_input_prepare.py -i ${pos_vd_group1_withbg} -o ${params.data_pos_withbg_group1_mummichog} &&
-//     mummichog -f ${params.data_pos_withbg_group1_mummichog} -o ${params.data_pos_withbg_group1_mummichog_out} -c ${params.cutoff} &&
-//     mummichog_input_prepare.py -i ${pos_vd_group2_withbg} -o ${params.data_pos_withbg_group2_mummichog} &&
-//     mummichog -f ${params.data_pos_withbg_group2_mummichog} -o ${params.data_pos_withbg_group2_mummichog_out} -c ${params.cutoff} &&
-//     mummichog_input_prepare.py -i ${pos_vd_both_withbg} -o ${params.data_pos_withbg_both_mummichog} &&
-//     mummichog -f ${params.data_pos_withbg_both_mummichog} -o ${params.data_pos_withbg_both_mummichog_out} -c ${params.cutoff}
-//     """
-// }
+    script:
+    """
+    echo "generating mommichog report for peaks after blank subtraction" &&
+    mkdir -p ${mat_config_dir_withbg} &&
+    echo "backend: Agg" > ${mat_config_file_withbg} &&
+    mummichog_input_prepare.py -i ${pos_vd_group1_withbg} -o ${params.data_pos_withbg_group1_mummichog} &&
+    mummichog -f ${params.data_pos_withbg_group1_mummichog} -o ${params.data_pos_withbg_group1_mummichog_out} -c ${params.cutoff} &&
+    mummichog_input_prepare.py -i ${pos_vd_group2_withbg} -o ${params.data_pos_withbg_group2_mummichog} &&
+    mummichog -f ${params.data_pos_withbg_group2_mummichog} -o ${params.data_pos_withbg_group2_mummichog_out} -c ${params.cutoff} &&
+    mummichog_input_prepare.py -i ${pos_vd_both_withbg} -o ${params.data_pos_withbg_both_mummichog} &&
+    mummichog -f ${params.data_pos_withbg_both_mummichog} -o ${params.data_pos_withbg_both_mummichog_out} -c ${params.cutoff}
+    """
+}
