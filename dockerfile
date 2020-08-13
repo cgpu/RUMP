@@ -1,6 +1,6 @@
 # Dockerfile for RUMP
 
-FROM rocker/rstudio:3.6.3
+FROM nfcore/base
 
 LABEL maintainer="xinsongdu@ufl.edu"
 
@@ -9,6 +9,7 @@ USER root
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     vim \
+    procps \
     libfreetype6 \
     libcairo2-dev \
     libexpat1-dev \
@@ -29,7 +30,6 @@ RUN apt-get update -qq && \
     libnetcdf-dev \
     liblapack-dev \
     cmake \
-    default-jdk \
     python\
     python-dev\
     software-properties-common\
@@ -40,11 +40,17 @@ RUN apt-get update -qq && \
     libnetcdf-dev libpng-dev libbz2-dev liblzma-dev libpcre3-dev libicu-dev
 
 # Install python3-based necessary dependencies for UMPIRE
-RUN pip3 install --upgrade 'setuptools==45.2.0'
-RUN pip3 install 'numpy==1.18.1' 'scipy==1.4.1' 'pandas==0.25.3' 'matplotlib<3.0.0,>=2.1.1' 'plotly==4.5.0' 'seaborn==0.9.1' 'scikit-learn==0.22.1' matplotlib_venn 'multiqc==1.8' 'statsmodels==0.11.0' 'fastcluster==1.1.26' 'pylint==2.4.4'
-RUN echo "alias python=python3" >> ~/.bash_profile
+# Install the conda environment
+COPY environment.yml /
+RUN conda env update -n rump -f/environment.yml && conda clean -a
 
-ENV NETCDF_INCLUDE=/usr/include
+RUN pip install mummichog
+
+# Add conda installation dir to PATH (instead of doing 'conda activate')
+ENV PATH /opt/conda/envs/rump/bin:$PATH
+
+# Dump the details of the installed packages to a file for posterity
+RUN conda env export --name rump > /rump.yml
 
 # invalidates cache every 24 hours
 ADD http://master.bioconductor.org/todays-date /tmp/
@@ -64,10 +70,6 @@ COPY accessibility.properties /app
 # install R packages
 COPY r_package_install.R /app
 RUN Rscript /app/r_package_install.R
-
-# Install mummichog
-RUN pip install --upgrade 'setuptools==44.0.0'
-RUN pip install 'mummichog==2.2.0'
 
 # Adds scripts inside the container
 RUN mkdir /opt/rump

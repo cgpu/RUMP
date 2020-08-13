@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 # 2018.12.19. ask
 # rm(list=ls(all=TRUE))
 
